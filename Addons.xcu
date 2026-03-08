@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fakture — LibreOffice Calc extension for invoice management.
+  Copyright (C) 2026  Fortunacommerc d.o.o.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<oor:component-data xmlns:oor="http://openoffice.org/2001/registry"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    oor:name="Addons" oor:package="org.openoffice.Office">
+
+    <node oor:name="AddonUI">
+        <node oor:name="OfficeMenuBar">
+            <node oor:name="com.fortunacommerc.fakture" oor:op="replace">
+                <prop oor:name="Title" oor:type="xs:string">
+                    <value>Fakture</value>
+                </prop>
+                <prop oor:name="Target" oor:type="xs:string">
+                    <value>_self</value>
+                </prop>
+                <prop oor:name="Context" oor:type="xs:string">
+                    <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                </prop>
+
+                <node oor:name="Submenu">
+                    <!-- Nova domaća faktura -->
+                    <node oor:name="m01" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:nova_faktura_domaci</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Nova domaća faktura</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                        </prop>
+                    </node>
+
+                    <!-- Nova ino faktura -->
+                    <node oor:name="m02" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:nova_faktura_ino</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Nova ino faktura</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                        </prop>
+                    </node>
+
+                    <!-- Osvježi šifrarnik — samo sa otvorenim dokumentom -->
+                    <node oor:name="m05" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:sync</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Osvježi šifrarnik</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument</value>
+                        </prop>
+                    </node>
+
+                    <!-- Domaći kupci -->
+                    <node oor:name="m07" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:open_domaci_kupci</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Domaći kupci</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                        </prop>
+                    </node>
+
+                    <!-- Ino kupci -->
+                    <node oor:name="m08" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:open_ino_kupci</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Ino kupci</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                        </prop>
+                    </node>
+
+                    <!-- Proizvodi i usluge -->
+                    <node oor:name="m09" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:open_proizvodi</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Proizvodi i usluge</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                        </prop>
+                    </node>
+
+                    <!-- Podešavanja sistema -->
+                    <node oor:name="m11" oor:op="replace">
+                        <prop oor:name="URL" oor:type="xs:string">
+                            <value>vnd.fortunacommerc.fakture:settings</value>
+                        </prop>
+                        <prop oor:name="Title" oor:type="xs:string">
+                            <value>Podešavanja sistema</value>
+                        </prop>
+                        <prop oor:name="Target" oor:type="xs:string">
+                            <value>_self</value>
+                        </prop>
+                        <prop oor:name="Context" oor:type="xs:string">
+                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
+                        </prop>
+                    </node>
+                </node>
+            </node>
+        </node>
+    </node>
+</oor:component-data>

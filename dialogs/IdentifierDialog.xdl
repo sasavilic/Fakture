@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fakture — LibreOffice Calc extension for invoice management.
+  Copyright (C) 2026  Fortunacommerc d.o.o.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog"
+            xmlns:script="http://openoffice.org/2000/script"
+            dlg:id="IdentifierDialog" dlg:left="0" dlg:top="0"
+            dlg:width="250" dlg:height="70"
+            dlg:title="Nova faktura"
+            dlg:closeable="true" dlg:moveable="true">
+  <dlg:bulletinboard>
+    <dlg:text dlg:id="lblPrompt" dlg:tab-index="0"
+              dlg:left="6" dlg:top="6" dlg:width="238" dlg:height="10"
+              dlg:value="Unesite identifikator fakture:"/>
+    <dlg:textfield dlg:id="txtIdentifier" dlg:tab-index="1"
+                   dlg:left="6" dlg:top="18" dlg:width="238" dlg:height="12"/>
+    <dlg:text dlg:id="lblInfo" dlg:tab-index="2"
+              dlg:left="6" dlg:top="34" dlg:width="238" dlg:height="10"
+              dlg:value=""/>
+    <dlg:fixedline dlg:id="sep1" dlg:tab-index="3"
+                   dlg:left="4" dlg:top="46" dlg:width="242" dlg:height="4"/>
+    <dlg:button dlg:id="btnCancel" dlg:tab-index="4"
+                dlg:left="86" dlg:top="54" dlg:width="52" dlg:height="10"
+                dlg:value="Odustani" dlg:button-type="cancel"/>
+    <dlg:button dlg:id="btnOK" dlg:tab-index="5"
+                dlg:left="144" dlg:top="54" dlg:width="100" dlg:height="10"
+                dlg:value="OK" dlg:button-type="ok" dlg:default="true"/>
+  </dlg:bulletinboard>
+</dlg:window>
