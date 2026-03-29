@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fakture — LibreOffice Calc extension for invoice management.
+  Copyright (C) 2026  Fortunacommerc d.o.o.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog"
+            xmlns:script="http://openoffice.org/2000/script"
+            dlg:id="TemplatePickerDialog" dlg:left="0" dlg:top="0"
+            dlg:width="220" dlg:height="80"
+            dlg:title="Nova faktura"
+            dlg:closeable="true" dlg:moveable="true">
+  <dlg:bulletinboard>
+    <dlg:text dlg:id="lblPrompt" dlg:tab-index="0"
+              dlg:left="6" dlg:top="6" dlg:width="208" dlg:height="10"
+              dlg:value="Izaberite obrazac fakture:"/>
+    <dlg:menulist dlg:id="lstTemplates" dlg:tab-index="1"
+                  dlg:left="6" dlg:top="18" dlg:width="208" dlg:height="30"/>
+    <dlg:fixedline dlg:id="sep1" dlg:tab-index="2"
+                   dlg:left="4" dlg:top="54" dlg:width="212" dlg:height="4"/>
+    <dlg:button dlg:id="btnCancel" dlg:tab-index="3"
+                dlg:left="60" dlg:top="62" dlg:width="52" dlg:height="10"
+                dlg:value="Odustani" dlg:button-type="cancel"/>
+    <dlg:button dlg:id="btnOK" dlg:tab-index="4"
+                dlg:left="118" dlg:top="62" dlg:width="96" dlg:height="10"
+                dlg:value="OK" dlg:button-type="ok" dlg:default="true"/>
+  </dlg:bulletinboard>
+</dlg:window>

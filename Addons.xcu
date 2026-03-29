@@ -34,29 +34,13 @@
                 </prop>
 
                 <node oor:name="Submenu">
-                    <!-- Nova domaća faktura -->
+                    <!-- Nova faktura -->
                     <node oor:name="m01" oor:op="replace">
                         <prop oor:name="URL" oor:type="xs:string">
-                            <value>vnd.fortunacommerc.fakture:nova_faktura_domaci</value>
+                            <value>vnd.fortunacommerc.fakture:nova_faktura</value>
                         </prop>
                         <prop oor:name="Title" oor:type="xs:string">
-                            <value>Nova domaća faktura</value>
-                        </prop>
-                        <prop oor:name="Target" oor:type="xs:string">
-                            <value>_self</value>
-                        </prop>
-                        <prop oor:name="Context" oor:type="xs:string">
-                            <value>com.sun.star.sheet.SpreadsheetDocument,com.sun.star.frame.StartModule</value>
-                        </prop>
-                    </node>
-
-                    <!-- Nova ino faktura -->
-                    <node oor:name="m02" oor:op="replace">
-                        <prop oor:name="URL" oor:type="xs:string">
-                            <value>vnd.fortunacommerc.fakture:nova_faktura_ino</value>
-                        </prop>
-                        <prop oor:name="Title" oor:type="xs:string">
-                            <value>Nova ino faktura</value>
+                            <value>Nova faktura</value>
                         </prop>
                         <prop oor:name="Target" oor:type="xs:string">
                             <value>_self</value>

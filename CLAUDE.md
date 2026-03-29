@@ -14,11 +14,12 @@ Implementiran kao UNO ProtocolHandler (`vnd.fortunacommerc.fakture:*`).
 | `python/fakture_config.py` | Čitanje/pisanje LO konfiguracije (BasePath) |
 | `python/fakture_sync.py` | Čita 3 .ods fajla → piše na skriveni `_Sifrarnik` sheet + Named Ranges |
 | `python/fakture_faktura.py` | Kreiranje fakture: skeniranje RB, kopiranje template-a, sync |
-| `python/fakture_dialogs.py` | UNO dijalozi: `_load_dialog` helper + msgbox, settings, identifier, folder picker |
+| `python/fakture_dialogs.py` | UNO dijalozi: `_load_dialog` helper + msgbox, settings, identifier, template picker, folder picker |
 | `dialogs/Settings.xdl` | Dialog za podešavanje baznog foldera |
 | `dialogs/IdentifierDialog.xdl` | Dialog za unos identifikatora fakture |
+| `dialogs/TemplatePickerDialog.xdl` | Dialog za izbor obrasca fakture |
 | `dialogs/dialog.xlb` | Library manifest za dialogs/ |
-| `Addons.xcu` | Meni definicija: 7 stavki sa `vnd.fortunacommerc.fakture:` URL-ovima |
+| `Addons.xcu` | Meni definicija: 6 stavki sa `vnd.fortunacommerc.fakture:` URL-ovima |
 | `ProtocolHandler.xcu` | Registracija `vnd.fortunacommerc.fakture:*` protokola sa LO |
 | `Fakture.xcs` | LO konfiguraciona šema: Settings (BasePath) + Logging (LogLevel) grupe |
 | `Fakture.xcu` | Default konfiguracione vrijednosti |
@@ -59,8 +60,7 @@ normalnim Python `import` mehanizmom — svi su pakovani u `.oxt` u `python/` di
 
 | Komanda | Funkcija |
 |---------|----------|
-| `nova_faktura_domaci` | `_cmd_nova_faktura(ctx, frame, "domaci")` |
-| `nova_faktura_ino` | `_cmd_nova_faktura(ctx, frame, "ino")` |
+| `nova_faktura` | `_cmd_nova_faktura(ctx, frame)` |
 | `sync` | `_cmd_sync(ctx, frame)` |
 | `open_domaci_kupci` | `_cmd_open(ctx, frame, "domaci_kupci")` |
 | `open_ino_kupci` | `_cmd_open(ctx, frame, "ino_kupci")` |
@@ -94,7 +94,8 @@ Globalna konfiguracija (ne per-document) kroz LO Configuration API:
 ├── Faktura-2-26__DrugaFirma.ods
 ├── Obrasci/
 │   ├── faktura_domaci.ods           # Template za domaće fakture
-│   └── faktura_ino.ods              # Template za ino fakture
+│   ├── faktura_ino.ods              # Template za ino fakture
+│   └── faktura_*.ods                # Dodatni template-i (automatski otkriveni)
 └── Sifrarnik/
     ├── proizvodi.ods                # Šifarnik proizvoda i usluga
     ├── domaci_kupci.ods             # Šifarnik domaćih kupaca
@@ -107,8 +108,7 @@ LO ne renderuje addon meni separatore — nisu uključeni.
 
 ```
 Fakture
-├── Nova domaća faktura              [uvijek]
-├── Nova ino faktura                 [uvijek]
+├── Nova faktura                     [uvijek]
 ├── Osvježi šifrarnik                [samo sa otvorenim Calc dokumentom]
 ├── Domaći kupci                     [uvijek]
 ├── Ino kupci                        [uvijek]
@@ -120,13 +120,17 @@ Fakture
 
 ```
 1. Provjeri config (BasePath) → ako nema, otvori settings
-2. get_next_rb() → skenira bazni folder za Faktura-{RB}-{GG}__*.ods
-3. show_identifier_dialog() → korisnik unosi identifikator
-4. sanitize_identifier() → razmaci→_, samo dozvoljeni znakovi, max 50
-5. shutil.copy2(template, dest) → Faktura-{RB}-{GG}__{ID}.ods
-6. loadComponentFromURL() → otvori kopiju
-7. sync_to_hidden_sheet() → automatski, bez pitanja
-8. doc.store() → sačuvaj
+2. discover_templates() → skenira Obrasci/ za faktura_*.ods
+   - 0 pronađeno → greška
+   - 1 pronađeno → automatski odabir
+   - 2+ pronađeno → show_template_picker() → korisnik bira
+3. get_next_rb() → skenira bazni folder za Faktura-{RB}-{GG}__*.ods
+4. show_identifier_dialog() → korisnik unosi identifikator
+5. sanitize_identifier() → razmaci→_, samo dozvoljeni znakovi, max 50
+6. shutil.copy2(template, dest) → Faktura-{RB}-{GG}__{ID}.ods
+7. loadComponentFromURL() → otvori kopiju
+8. sync_to_hidden_sheet() → automatski, bez pitanja
+9. doc.store() → sačuvaj
 ```
 
 ## Detekcija godine
@@ -210,7 +214,7 @@ Ako proizvod nema bar kod ali ima ID: `00` + nule + ID, min 8, max 14 cifara.
 |-----------|---------|
 | Config ne postoji | Otvori dijalog Podešavanja |
 | Bazni folder ne postoji | MsgBox greška + otvori Podešavanja |
-| Obrazac ne postoji | MsgBox greška |
+| Nema obrazaca u Obrasci/ | MsgBox greška |
 | Šifarnik .ods ne postoji | Preskače (prazna sekcija) |
 | Prazan identifikator | MsgBox upozorenje |
 | Fajl već otvoren | Fokusiraj postojeći prozor |

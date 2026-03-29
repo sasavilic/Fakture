@@ -26,6 +26,7 @@ Flow:
   7. doc.store() — save
 """
 
+import glob
 import os
 import re
 import shutil
@@ -86,22 +87,34 @@ def sanitize_identifier(text):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Template type mapping
+# Template discovery
 # ─────────────────────────────────────────────────────────────────────────────
 
-TEMPLATE_MAP = {
-    "domaci":   "faktura_domaci.ods",
-    "ino":      "faktura_ino.ods",
-}
+def discover_templates(base_path):
+    """
+    Scan Obrasci/ for faktura_*.ods files.
+    Returns list of (display_name, filename) sorted by filename.
+    Display name: part after 'faktura_' before '.ods', '_' → ' ', capitalize first letter.
+    """
+    obrasci_dir = os.path.join(base_path, "Obrasci")
+    pattern = os.path.join(obrasci_dir, "faktura_*.ods")
+    templates = []
+    for path in glob.glob(pattern):
+        filename = os.path.basename(path)
+        stem = filename[len("faktura_"):-len(".ods")]
+        display_name = stem.replace("_", " ").capitalize()
+        templates.append((display_name, filename))
+    templates.sort(key=lambda t: t[1])
+    return templates
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Invoice creation
 # ─────────────────────────────────────────────────────────────────────────────
 
-def create_invoice(ctx, tip, frame=None):
-    """Create a new invoice of the given type (domaci/ino)."""
-    _log.info("create_invoice: type=%s", tip)
+def create_invoice(ctx, frame=None):
+    """Create a new invoice from a discovered template."""
+    _log.info("create_invoice")
 
     # 1. Check config
     base_path = fakture_config.get_base_path()
@@ -123,16 +136,36 @@ def create_invoice(ctx, tip, frame=None):
             "Fakture — Greška", "error", frame=frame)
         return
 
-    # 3. Next sequential number
+    # 3. Discover templates
+    templates = discover_templates(base_path)
+    if not templates:
+        fakture_dialogs.show_msgbox(ctx,
+            "Nema obrazaca u folderu Obrasci/\n\n"
+            "Dodajte faktura_*.ods fajlove u Obrasci/ folder.",
+            "Fakture — Greška", "error", frame=frame)
+        return
+
+    if len(templates) == 1:
+        selected = templates[0]
+    else:
+        selected = fakture_dialogs.show_template_picker(ctx, frame, templates)
+        if selected is None:
+            _log.info("create_invoice: user cancelled template picker")
+            return
+
+    template_name = selected[1]
+    _log.info("create_invoice: selected template=%s", template_name)
+
+    # 4. Next sequential number
     next_rb, year_suffix = get_next_rb(base_path)
 
-    # 4. Identifier dialog
+    # 5. Identifier dialog
     identifier = fakture_dialogs.show_identifier_dialog(ctx, next_rb, frame)
     if identifier is None:
         _log.info("create_invoice: user cancelled")
         return
 
-    # 5. Sanitize
+    # 6. Sanitize
     identifier = sanitize_identifier(identifier)
     if not identifier:
         fakture_dialogs.show_msgbox(ctx,
@@ -140,20 +173,7 @@ def create_invoice(ctx, tip, frame=None):
             "Fakture — Greška", "error", frame=frame)
         return
 
-    # 6. Check template
-    template_name = TEMPLATE_MAP.get(tip)
-    if not template_name:
-        fakture_dialogs.show_msgbox(ctx,
-            "Nepoznat tip fakture: " + str(tip),
-            "Fakture — Greška", "error", frame=frame)
-        return
-
     template_path = os.path.join(base_path, "Obrasci", template_name)
-    if not os.path.exists(template_path):
-        fakture_dialogs.show_msgbox(ctx,
-            "Obrazac '{}' nije pronađen u folderu Obrasci/".format(template_name),
-            "Fakture — Greška", "error", frame=frame)
-        return
 
     # 7. Copy template
     dest_name = "Faktura-{}-{}__{}.ods".format(next_rb, year_suffix, identifier)

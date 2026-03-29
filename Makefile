@@ -32,7 +32,8 @@ SOURCES = \
 	python/fakture_dialogs.py \
 	dialogs/dialog.xlb \
 	dialogs/Settings.xdl \
-	dialogs/IdentifierDialog.xdl
+	dialogs/IdentifierDialog.xdl \
+	dialogs/TemplatePickerDialog.xdl
 
 .PHONY: build install reinstall uninstall clean
 

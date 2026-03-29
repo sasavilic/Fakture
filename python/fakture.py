@@ -21,8 +21,7 @@ Protocol: vnd.fortunacommerc.fakture:*
 Menu:     Fakture > ...
 
 Commands:
-  nova_faktura_domaci  — new domestic invoice
-  nova_faktura_ino     — new foreign invoice
+  nova_faktura         — new invoice (auto-discovers templates)
   sync                 — refresh codebook in the active document
   open_domaci_kupci    — open domestic customers codebook
   open_ino_kupci       — open foreign customers codebook
@@ -155,9 +154,9 @@ def _open_or_focus(ctx, file_path):
 # Command implementations
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _cmd_nova_faktura(ctx, frame, tip):
-    log.info("nova_faktura: type=%s", tip)
-    fakture_faktura.create_invoice(ctx, tip, frame)
+def _cmd_nova_faktura(ctx, frame):
+    log.info("nova_faktura")
+    fakture_faktura.create_invoice(ctx, frame)
 
 
 def _cmd_sync(ctx, frame):
@@ -246,10 +245,8 @@ class FaktureDispatch(unohelper.Base, XDispatch):
             ctx = self.context
             frame = self.frame
             cmd = self.command
-            if cmd == "nova_faktura_domaci":
-                _cmd_nova_faktura(ctx, frame, "domaci")
-            elif cmd == "nova_faktura_ino":
-                _cmd_nova_faktura(ctx, frame, "ino")
+            if cmd == "nova_faktura":
+                _cmd_nova_faktura(ctx, frame)
             elif cmd == "sync":
                 _cmd_sync(ctx, frame)
             elif cmd == "open_domaci_kupci":

@@ -20,6 +20,7 @@ Functions:
   show_msgbox             — info/error/question message box (5-param LO 26.x)
   show_settings           — base folder settings (XDL: Settings.xdl)
   show_identifier_dialog  — invoice identifier input (XDL: IdentifierDialog.xdl)
+  show_template_picker    — template selection (XDL: TemplatePickerDialog.xdl)
   show_folder_picker      — system folder picker
 """
 
@@ -134,6 +135,34 @@ def show_identifier_dialog(ctx, next_rb, frame=None):
         identifier = dialog.getControl("txtIdentifier").getText().strip()
         dialog.dispose()
         return identifier if identifier else None
+    else:
+        dialog.dispose()
+        return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Template picker dialog
+# ─────────────────────────────────────────────────────────────────────────────
+
+def show_template_picker(ctx, frame, templates):
+    """
+    Show template picker dialog (TemplatePickerDialog.xdl).
+    templates: list of (display_name, filename) tuples.
+    Returns selected (display_name, filename) or None if cancelled.
+    """
+    dialog = _load_dialog(ctx, frame, "TemplatePickerDialog")
+    listbox = dialog.getControl("lstTemplates")
+    for display_name, _filename in templates:
+        listbox.addItem(display_name, listbox.getItemCount())
+    listbox.selectItemPos(0, True)
+
+    result_code = dialog.execute()
+    if result_code == 1:
+        idx = listbox.getSelectedItemPos()
+        dialog.dispose()
+        if idx >= 0:
+            return templates[idx]
+        return None
     else:
         dialog.dispose()
         return None
