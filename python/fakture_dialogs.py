@@ -122,12 +122,13 @@ def show_settings(ctx, frame=None):
 # Identifier dialog
 # ─────────────────────────────────────────────────────────────────────────────
 
-def show_identifier_dialog(ctx, next_rb, frame=None):
+def show_identifier_dialog(ctx, next_rb, frame=None, title="Nova faktura"):
     """
     Show the invoice identifier input dialog (IdentifierDialog.xdl).
     Returns identifier string or None if cancelled.
     """
     dialog = _load_dialog(ctx, frame, "IdentifierDialog")
+    dialog.setTitle(title)
     dialog.getControl("lblInfo").setText("Sljedeći redni broj: " + str(next_rb))
 
     result_code = dialog.execute()
@@ -144,13 +145,14 @@ def show_identifier_dialog(ctx, next_rb, frame=None):
 # Template picker dialog
 # ─────────────────────────────────────────────────────────────────────────────
 
-def show_template_picker(ctx, frame, templates):
+def show_template_picker(ctx, frame, templates, title="Nova faktura"):
     """
     Show template picker dialog (TemplatePickerDialog.xdl).
     templates: list of (display_name, filename) tuples.
     Returns selected (display_name, filename) or None if cancelled.
     """
     dialog = _load_dialog(ctx, frame, "TemplatePickerDialog")
+    dialog.setTitle(title)
     listbox = dialog.getControl("lstTemplates")
     for display_name, _filename in templates:
         listbox.addItem(display_name, listbox.getItemCount())

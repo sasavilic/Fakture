@@ -19,12 +19,12 @@ Implementiran kao UNO ProtocolHandler (`vnd.fortunacommerc.fakture:*`).
 | `dialogs/IdentifierDialog.xdl` | Dialog za unos identifikatora fakture |
 | `dialogs/TemplatePickerDialog.xdl` | Dialog za izbor obrasca fakture |
 | `dialogs/dialog.xlb` | Library manifest za dialogs/ |
-| `Addons.xcu` | Meni definicija: 6 stavki sa `vnd.fortunacommerc.fakture:` URL-ovima |
+| `Addons.xcu` | Meni definicija: 7 stavki sa `vnd.fortunacommerc.fakture:` URL-ovima |
 | `ProtocolHandler.xcu` | Registracija `vnd.fortunacommerc.fakture:*` protokola sa LO |
 | `Fakture.xcs` | LO konfiguraciona šema: Settings (BasePath) + Logging (LogLevel) grupe |
 | `Fakture.xcu` | Default konfiguracione vrijednosti |
 | `META-INF/manifest.xml` | Registracija fajlova; fakture.py registrovan kao uno-component |
-| `description.xml` | Identitet: `com.fortunacommerc.fakture` v2.0.0 |
+| `description.xml` | Identitet: `com.fortunacommerc.fakture` v2.1.0 |
 | `Makefile` | `make build` → `Fakture.oxt` / `make install` → `unopkg add` |
 
 ## Build & instalacija
@@ -61,6 +61,7 @@ normalnim Python `import` mehanizmom — svi su pakovani u `.oxt` u `python/` di
 | Komanda | Funkcija |
 |---------|----------|
 | `nova_faktura` | `_cmd_nova_faktura(ctx, frame)` |
+| `nova_avansna_faktura` | `_cmd_nova_avansna_faktura(ctx, frame)` |
 | `sync` | `_cmd_sync(ctx, frame)` |
 | `open_domaci_kupci` | `_cmd_open(ctx, frame, "domaci_kupci")` |
 | `open_ino_kupci` | `_cmd_open(ctx, frame, "ino_kupci")` |
@@ -92,10 +93,12 @@ Globalna konfiguracija (ne per-document) kroz LO Configuration API:
 <bazni_folder>/
 ├── Faktura-1-26__MojKupac.ods       # Fakture direktno u baznom folderu
 ├── Faktura-2-26__DrugaFirma.ods
+├── Avansna-Faktura-1-26__MojKupac.ods  # Avansne fakture, odvojena numeracija
 ├── Obrasci/
 │   ├── faktura_domaci.ods           # Template za domaće fakture
 │   ├── faktura_ino.ods              # Template za ino fakture
-│   └── faktura_*.ods                # Dodatni template-i (automatski otkriveni)
+│   ├── faktura_*.ods                # Dodatni template-i (automatski otkriveni)
+│   └── avansna_faktura_*.ods        # Template-i za avansne fakture
 └── Sifrarnik/
     ├── proizvodi.ods                # Šifarnik proizvoda i usluga
     ├── domaci_kupci.ods             # Šifarnik domaćih kupaca
@@ -109,6 +112,7 @@ LO ne renderuje addon meni separatore — nisu uključeni.
 ```
 Fakture
 ├── Nova faktura                     [uvijek]
+├── Nova avansna faktura             [uvijek]
 ├── Osvježi šifrarnik                [samo sa otvorenim Calc dokumentom]
 ├── Domaći kupci                     [uvijek]
 ├── Ino kupci                        [uvijek]
@@ -118,16 +122,26 @@ Fakture
 
 ## Kreiranje fakture — tok
 
+Dvije vrste fakture dijele isti tok (`create_invoice(ctx, frame, kind)`), razlikuju se samo
+po prefiksima (`InvoiceKind` u `fakture_faktura.py`):
+
+| Vrsta | Obrasci | Fajl | Naslov dijaloga |
+|-------|---------|------|-----------------|
+| `FAKTURA` | `faktura_*.ods` | `Faktura-{RB}-{GG}__{ID}.ods` | Nova faktura |
+| `AVANSNA_FAKTURA` | `avansna_faktura_*.ods` | `Avansna-Faktura-{RB}-{GG}__{ID}.ods` | Nova avansna faktura |
+
+Svaka vrsta ima svoju odvojenu numeraciju (RB se traži samo među fajlovima sa istim prefiksom).
+
 ```
 1. Provjeri config (BasePath) → ako nema, otvori settings
-2. discover_templates() → skenira Obrasci/ za faktura_*.ods
+2. discover_templates() → skenira Obrasci/ za {template_prefix}*.ods
    - 0 pronađeno → greška
    - 1 pronađeno → automatski odabir
    - 2+ pronađeno → show_template_picker() → korisnik bira
-3. get_next_rb() → skenira bazni folder za Faktura-{RB}-{GG}__*.ods
+3. get_next_rb() → skenira bazni folder za {file_prefix}-{RB}-{GG}__*.ods
 4. show_identifier_dialog() → korisnik unosi identifikator
 5. sanitize_identifier() → razmaci→_, samo dozvoljeni znakovi, max 50
-6. shutil.copy2(template, dest) → Faktura-{RB}-{GG}__{ID}.ods
+6. shutil.copy2(template, dest) → {file_prefix}-{RB}-{GG}__{ID}.ods
 7. loadComponentFromURL() → otvori kopiju
 8. sync_to_hidden_sheet() → automatski, bez pitanja
 9. doc.store() → sačuvaj

@@ -16,20 +16,27 @@
 """
 fakture_faktura — Invoice creation from templates with auto-numbering.
 
+Two kinds of invoice share the same flow and differ only in prefixes:
+  FAKTURA          — templates Obrasci/faktura_*.ods         → Faktura-{RB}-{GG}__{ID}.ods
+  AVANSNA_FAKTURA  — templates Obrasci/avansna_faktura_*.ods → Avansna-Faktura-{RB}-{GG}__{ID}.ods
+Each kind has its own sequential numbering.
+
 Flow:
   1. Check config (base path)
-  2. get_next_rb() — scan base folder for next sequential number
-  3. show_identifier_dialog() — user enters identifier
-  4. Copy template from Obrasci/
-  5. Open the copy
-  6. sync_to_hidden_sheet() — automatic import
-  7. doc.store() — save
+  2. discover_templates() — scan Obrasci/ for the kind's templates
+  3. get_next_rb() — scan base folder for next sequential number of the kind
+  4. show_identifier_dialog() — user enters identifier
+  5. Copy template from Obrasci/
+  6. Open the copy
+  7. sync_to_hidden_sheet() — automatic import
+  8. doc.store() — save
 """
 
 import glob
 import os
 import re
 import shutil
+from collections import namedtuple
 
 import logging
 
@@ -43,18 +50,31 @@ _log = logging.getLogger("fakture.faktura")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Invoice kinds
+# ─────────────────────────────────────────────────────────────────────────────
+
+# template_prefix — filename prefix of templates in Obrasci/
+# file_prefix     — filename prefix of created invoices in the base folder
+# title           — dialog title shown to the user
+InvoiceKind = namedtuple("InvoiceKind", ["template_prefix", "file_prefix", "title"])
+
+FAKTURA = InvoiceKind("faktura_", "Faktura", "Nova faktura")
+AVANSNA_FAKTURA = InvoiceKind("avansna_faktura_", "Avansna-Faktura", "Nova avansna faktura")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Sequential number
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_next_rb(base_path):
+def get_next_rb(base_path, file_prefix):
     r"""
     Scan base folder (not subdirs) for files matching:
-      Faktura-{RB}-{GG}__.*\.ods
+      {file_prefix}-{RB}-{GG}__.*\.ods
     Returns (next_rb, year_suffix).
     """
     year_suffix = fakture_config.detect_year_from_folder(base_path)
     pattern = re.compile(
-        rf"^Faktura-(\d+)-{re.escape(year_suffix)}__.*\.ods$"
+        rf"^{re.escape(file_prefix)}-(\d+)-{re.escape(year_suffix)}__.*\.ods$"
     )
     max_rb = 0
 
@@ -90,18 +110,18 @@ def sanitize_identifier(text):
 # Template discovery
 # ─────────────────────────────────────────────────────────────────────────────
 
-def discover_templates(base_path):
+def discover_templates(base_path, template_prefix):
     """
-    Scan Obrasci/ for faktura_*.ods files.
+    Scan Obrasci/ for {template_prefix}*.ods files.
     Returns list of (display_name, filename) sorted by filename.
-    Display name: part after 'faktura_' before '.ods', '_' → ' ', capitalize first letter.
+    Display name: part after the prefix before '.ods', '_' → ' ', capitalize first letter.
     """
     obrasci_dir = os.path.join(base_path, "Obrasci")
-    pattern = os.path.join(obrasci_dir, "faktura_*.ods")
+    pattern = os.path.join(obrasci_dir, template_prefix + "*.ods")
     templates = []
     for path in glob.glob(pattern):
         filename = os.path.basename(path)
-        stem = filename[len("faktura_"):-len(".ods")]
+        stem = filename[len(template_prefix):-len(".ods")]
         display_name = stem.replace("_", " ").capitalize()
         templates.append((display_name, filename))
     templates.sort(key=lambda t: t[1])
@@ -112,9 +132,9 @@ def discover_templates(base_path):
 # Invoice creation
 # ─────────────────────────────────────────────────────────────────────────────
 
-def create_invoice(ctx, frame=None):
-    """Create a new invoice from a discovered template."""
-    _log.info("create_invoice")
+def create_invoice(ctx, frame=None, kind=FAKTURA):
+    """Create a new invoice of the given kind from a discovered template."""
+    _log.info("create_invoice: kind=%s", kind.file_prefix)
 
     # 1. Check config
     base_path = fakture_config.get_base_path()
@@ -137,18 +157,19 @@ def create_invoice(ctx, frame=None):
         return
 
     # 3. Discover templates
-    templates = discover_templates(base_path)
+    templates = discover_templates(base_path, kind.template_prefix)
     if not templates:
         fakture_dialogs.show_msgbox(ctx,
             "Nema obrazaca u folderu Obrasci/\n\n"
-            "Dodajte faktura_*.ods fajlove u Obrasci/ folder.",
+            "Dodajte {}*.ods fajlove u Obrasci/ folder.".format(kind.template_prefix),
             "Fakture — Greška", "error", frame=frame)
         return
 
     if len(templates) == 1:
         selected = templates[0]
     else:
-        selected = fakture_dialogs.show_template_picker(ctx, frame, templates)
+        selected = fakture_dialogs.show_template_picker(
+            ctx, frame, templates, title=kind.title)
         if selected is None:
             _log.info("create_invoice: user cancelled template picker")
             return
@@ -157,10 +178,11 @@ def create_invoice(ctx, frame=None):
     _log.info("create_invoice: selected template=%s", template_name)
 
     # 4. Next sequential number
-    next_rb, year_suffix = get_next_rb(base_path)
+    next_rb, year_suffix = get_next_rb(base_path, kind.file_prefix)
 
     # 5. Identifier dialog
-    identifier = fakture_dialogs.show_identifier_dialog(ctx, next_rb, frame)
+    identifier = fakture_dialogs.show_identifier_dialog(
+        ctx, next_rb, frame, title=kind.title)
     if identifier is None:
         _log.info("create_invoice: user cancelled")
         return
@@ -176,7 +198,7 @@ def create_invoice(ctx, frame=None):
     template_path = os.path.join(base_path, "Obrasci", template_name)
 
     # 7. Copy template
-    dest_name = "Faktura-{}-{}__{}.ods".format(next_rb, year_suffix, identifier)
+    dest_name = "{}-{}-{}__{}.ods".format(kind.file_prefix, next_rb, year_suffix, identifier)
     dest_path = os.path.join(base_path, dest_name)
     _log.info("copying template: %s -> %s", template_name, dest_name)
 
